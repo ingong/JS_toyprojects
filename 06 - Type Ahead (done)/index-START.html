@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+const cities = [];
+
+
+
+// regExp
+// const regex = new RegExp(wordToMatch, 'gi')
+
+
+
+// ? join 사용한 이유 다시 알아보자
+
+
+// 1. fetch 를 통해 네트워크 요청을 보내고 받아온다
+// - Producer fetch(url)
+// - Consumer .then 과 blob 을 사용해서 배열안에 data 를 넣는다
+
+// 2. 원하는 요소 탐색 및 eventListener
+// - addeventlistener (change, keyup)
+// - 함수 displayMatches 설정
+
+// 3-1 displayMatches
+// - this.value, cities 라는 두 가지 변수를 find Matches 에 보낸다
+// - findMatches 를 통해 문자열 일치하는 city, state 만 반환되게 
+
+// 4. findMatches
+// - filter method, regex gi 를 통해서  || 를 이용해서 city, state 일치
+
+// 3-2 displayMatches
+// - matchArray 에 findMatches 만족하는 배열을 받아옴
+// - html = matchArray.map(place => { return ``})
+// - join 메소드 뭔가 연결되게함
+// - suggestions.innerHTML 로 넣어줌
+// - replace(regex , `~~`)
+
+
+fetch(endpoint)
+  .then(blob => blob.json())
+  .then(data => cities.push(...data))
+
+
+function findMatches(wordToMatch, cities) {
+  return cities.filter(place => {
+    // 일치하는 city 또는 state 반환하기
+    const regex = new RegExp(wordToMatch, 'gi');
+    return place.city.match(regex) || place.state.match(regex)
+  })
+}
+
+// stackoverflow
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function displayMatches() {
+  const matchArray = findMatches(this.value, cities);
+  const html = matchArray.map(place => {
+    // highlight 한다는데 무슨 말인지 모르겠음.. 내 생각엔 regExp 를 몰라서 그럴껄...
+    const regex = new RegExp(this.value, 'gi');
+    const cityName = place.city.replace(regex, `<span class="hl">${this.value}</span>`);
+    const stateName = place.state.replace(regex, `<span class="hl">${this.value}</span>`);
+    // 원래 있었던 return 에서 
+    return `
+      <li>
+        <span class="name">${cityName}, ${stateName}</span>
+        <span class="population">${numberWithCommas(place.population)}</span>
+      </li>
+    `
+  }).join('');
+  suggestions.innerHTML = html;
+  
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
+
+</script>
+</body>
+</html>
